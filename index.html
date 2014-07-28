@@ -2,6 +2,11 @@
 <head>
 	<title>Javascript Box - OOP demo</title>
 </head>
+<style type="text/css">
+#svg {
+	background-color: black;
+}
+</style>
 <body>
 
 	<svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -18,7 +23,8 @@
 		}
 
 		this.initialize = function(){
-			//give a random velocity for the circle
+			// give a random velocity for the circle
+			// velocity is an object in the this.info attribute with x and y keys
 			this.info.velocity = {
 				x: randomNumberBetween(-3,3),
 				y: randomNumberBetween(-3,3)
@@ -30,21 +36,34 @@
 				  	cy: this.info.cy,
 				  	r:  10,
 				  	id: html_id,
-				  	style: "fill: black"
+				  	style: "fill: "+randomcolor()
 				});
 
 			document.getElementById('svg').appendChild(circle);
 		}
 
+		var randomcolor = function() {
+	    			var rgb = ['f', 'e', 'd', 'c', 'b', 'a', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0'];
+	    			color = '#'
+	    			for(var i = 0; i < 6; i++) {
+						x = Math.floor((Math.random()*16))
+						color += rgb[x];	
+					}
+					return color;
+   		} // random color function
+
 		this.update = function(time){
 			var el = document.getElementById(html_id);
+			var offsetx = (+el.getAttribute('r'))+time
+			var offsety = (+el.getAttribute('r'))+time
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
-			if( this.info.cx > document.body.clientWidth || this.info.cx < 0)
+			if(this.info.cx+(+offsetx) > document.body.clientWidth || this.info.cx-(+offsetx) < 0)
 			{
+				console.log("hit a wall, offsetx was "+offsetx+" cx was "+this.info.cx+ " client width was "+document.body.clientWidth)
 				this.info.velocity.x = this.info.velocity.x * -1;
 			}
-			if( this.info.cy > document.body.clientHeight || this.info.cy < 0)
+			if( this.info.cy+(+offsety) > document.body.clientHeight || this.info.cy-(+offsety) < 0)
 			{
 				this.info.velocity.y = this.info.velocity.y * -1;
 			}
@@ -74,12 +93,15 @@
 		var counter = 0;  //counts the number of circles created
 		var circles = [ ]; //array that will hold all the circles created in the app
 
+
 		//a loop that updates the circle's position on the screen
 		this.loop = function(){
 			for(circle in circles)
 			{
 				circles[circle].update(1);
 			}
+			document.getElementById('svg').setAttribute('width', document.body.clientWidth)
+			document.getElementById('svg').setAttribute('height', document.body.clientHeight)
 		}
 
 		this.createNewCircle = function(x,y){
@@ -93,7 +115,7 @@
 	}
 
 	var playground = new PlayGround();
-	setInterval(playground.loop, 15);
+	setInterval(playground.loop, 10);
 
 	document.onclick = function(e) {
 		playground.createNewCircle(e.x,e.y);

@@ -12,10 +12,10 @@
 	<svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
 	<script>
-	function Circle(cx, cy, html_id)
+	function Circle(cx, cy, radius, html_id)
 	{
 		var html_id = html_id;
-		this.info = { cx: cx,  cy: cy };
+		this.info = { cx: cx,  cy: cy, radius: radius };
 		
 		//private function that generates a random number
 		var randomNumberBetween = function(min, max){
@@ -34,7 +34,7 @@
 			var circle = makeSVG('circle', 
 				{ 	cx: this.info.cx,
 				  	cy: this.info.cy,
-				  	r:  10,
+				  	r:  this.info.radius,
 				  	id: html_id,
 				  	style: "fill: "+randomcolor()
 				});
@@ -54,8 +54,8 @@
 
 		this.update = function(time){
 			var el = document.getElementById(html_id);
-			var offsetx = (+el.getAttribute('r'))+time
-			var offsety = (+el.getAttribute('r'))+time
+			var offsetx = this.info.radius
+			var offsety = this.info.radius
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
 			if(this.info.cx+(+offsetx) > document.body.clientWidth || this.info.cx-(+offsetx) < 0)
@@ -104,22 +104,56 @@
 			document.getElementById('svg').setAttribute('height', document.body.clientHeight)
 		}
 
-		this.createNewCircle = function(x,y){
-			var new_circle = new Circle(x,y,counter++);
+		this.createNewCircle = function(x,y,radius){
+			var new_circle = new Circle(x,y,radius,counter++);
 			circles.push(new_circle);
 			// console.log('created a new circle!', new_circle);
 		}
 
 		//create one circle when the game starts
-		this.createNewCircle(document.body.clientWidth/2, document.body.clientHeight/2);
+		this.createNewCircle(document.body.clientWidth/2, document.body.clientHeight/2, 10);
 	}
 
 	var playground = new PlayGround();
 	setInterval(playground.loop, 10);
 
-	document.onclick = function(e) {
-		playground.createNewCircle(e.x,e.y);
+	function getTime(){
+			var date = new Date();
+			return date.getTime();
 	}
+
+	document.onmousedown = function(e){
+		mousedown_time = getTime();
+	}
+	document.onmouseup = function(e){
+		time_pressed = getTime() - mousedown_time;
+		r_desired = time_pressed/10
+		r_desired <= 200 ? r_actual = r_desired : r_actual = 200
+
+		// check if circle is gonna be outside the x limits
+		if(e.x+r_desired > document.body.clientWidth) {
+			r_actual = document.body.clientWidth - e.x	
+			console.log("circle is hanging off the right r_actual computed to be "+r_actual)
+		} else if(e.x-r_desired < 0) {
+			r_actual = e.x
+			console.log("circle is hanging off the left r_actual computed to be "+r_actual)
+		}
+		// reset r_desired to guard against case when the circle will be outside both the x and y limits
+		r_desired = r_actual
+		// check if circle is gonna be outside the y limits
+		if(e.y+r_desired > document.body.clientHeight) {
+			r_actual = document.body.clientHeight - e.y
+			console.log("circle is hanging off the bottom r_actual computed to be "+r_actual)
+		} else if(e.y-r_desired < 0) {
+			r_actual = e.y
+			console.log("circle is hanging off the top r_actual computed to be "+r_actual)
+		}
+		playground.createNewCircle(e.x,e.y,r_actual)
+	}
+
+	// document.onclick = function(e) {
+	// 	playground.createNewCircle(e.x,e.y);
+	// }
 	
 	</script>
 
